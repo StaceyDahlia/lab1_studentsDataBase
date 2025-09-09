@@ -41,11 +41,12 @@ void displayStudents(const std::vector<Student>& database) {
 void displayStudBySpec(const std::vector<Student>& database) {
     if (database.empty()) {
         std::cout << "База данных студентов пуста.\n";
-        return; // Прерываем выполнение функции
+        return;
     }
     std::string major;
     std::cout << "Введите специальность для поиска: ";
-    std::cin >> major;
+    std::cin.ignore();
+    std::getline(std::cin, major);
     
     bool found = false;
     std::cout << "Студенты специальности '" << major << "':\n";
