@@ -48,7 +48,7 @@ void displayStudBySpec(const std::vector<Student>& database) {
     std::cin.ignore();
     std::getline(std::cin, major);
     
-    bool found = false;
+    int count = 0;
     std::cout << "Студенты специальности '" << major << "':\n";
     
     for (const Student& student : database) {
@@ -61,8 +61,10 @@ void displayStudBySpec(const std::vector<Student>& database) {
         }
     }
     
-    if (!found) {
+    if (count == 0) {
         std::cout << "Студенты по специальности '" << major << "' не найдены.\n";
+    } else {
+        std::cout << "Найдено студентов: " << count << "\n";
     }
 }
 
