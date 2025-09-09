@@ -39,6 +39,10 @@ void displayStudents(const std::vector<Student>& database) {
 
 // Функция для вывода студентов по специальности
 void displayStudBySpec(const std::vector<Student>& database) {
+    if (database.empty()) {
+        std::cout << "База данных студентов пуста.\n";
+        return; // Прерываем выполнение функции
+    }
     std::string major;
     std::cout << "Введите специальность для поиска: ";
     std::cin >> major;
