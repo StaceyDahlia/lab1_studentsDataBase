@@ -57,7 +57,7 @@ void displayStudBySpec(const std::vector<Student>& database) {
             std::cout << "Возраст: " << student.age << "\n";
             std::cout << "Специальность: " << student.major << "\n";
             std::cout << "Средний балл: " << student.gpa << "\n\n";
-            found = true;
+            count++;
         }
     }
     
