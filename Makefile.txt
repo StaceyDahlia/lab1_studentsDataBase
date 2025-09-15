@@ -1,4 +1,31 @@
-all:
-	g++ -std=c++20 main.cpp -o a.out
+# Компилятор и флаги
+CXX = g++
+CXXFLAGS = -std=c++20
+
+# Целевые файлы
+MAIN_SRC = main.cpp
+MAIN_BIN = app
+TEST_BIN = tests
+
+# Флаги для GoogleTest
+GTEST_FLAGS = -lgtest -lgtest_main -pthread
+
+# Цель по умолчанию
+all: $(MAIN_BIN)
+
+# Компиляция основного приложения
+$(MAIN_BIN): $(MAIN_SRC)
+	$(CXX) $(CXXFLAGS) $(MAIN_SRC) -o $(MAIN_BIN)
+
+# Компиляция и запуск тестов
+test: $(MAIN_SRC)
+	$(CXX) $(CXXFLAGS) $(MAIN_SRC) -DRUN_TESTS -o $(TEST_BIN) $(GTEST_FLAGS)
+	./$(TEST_BIN)
+
+# Запуск основной программы
+run: $(MAIN_BIN)
+	./$(MAIN_BIN)
+
+# Очистка
 clean:
-	rm a.out
+	rm -f $(MAIN_BIN) $(TEST_BIN)
