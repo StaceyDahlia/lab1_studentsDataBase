@@ -1,0 +1,62 @@
+name: C/C++ CI with GoogleTest
+
+on:
+  push:
+    branches: [ "feature/spec_stud" ]
+  pull_request:
+    branches: [ "feature/spec_stud" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libgtest-dev gcovr
+
+        # сборка тестов
+        cd /usr/src/gtest
+        sudo cmake .
+        sudo make
+        sudo cp lib/*.a /usr/lib/
+
+    - name: Compile with coverage flags
+      run: |
+        g++ -std=c++20 main.cpp -DRUN_TESTS -o tests \
+            -lgtest -lgtest_main -pthread \
+            -fprofile-arcs -ftest-coverage -O0 -g
+
+    - name: Run tests
+      run: ./tests
+
+    - name: Generate coverage report
+      run: |
+        gcovr --root . --xml-pretty -o coverage.cobertura.xml
+
+    - name: Show coverage summary
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage.cobertura.xml
+        badge: true
+        format: markdown
+        output: both
+
+    - name: Get coverage %
+      run: |
+        COVERAGE=$(grep -o 'line-rate="[0-9.]*"' coverage.cobertura.xml | head -1 | grep -o '[0-9.]*' | awk '{printf("%.0f", $1*100)}')
+        echo "COVERAGE=${COVERAGE}%" >> $GITHUB_ENV
+
+    - name: Update coverage badge
+      uses: schneegans/dynamic-badges-action@v1.0.0
+      with:
+        auth: ${{ secrets.GIST_TOKEN }}
+        gistID: ${{ secrets.GIST_ID }}
+        filename: coverage.json
+        label: coverage
+        message: ${{ env.COVERAGE }}
+        color: green
