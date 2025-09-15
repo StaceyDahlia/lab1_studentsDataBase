@@ -27,12 +27,12 @@ jobs:
 
     - name: Compile with coverage flags
       run: |
-        g++ -std=c++20 main.cpp -DRUN_TESTS -o tests \
+        g++ -std=c++20 main.cpp -DRUN_TESTS -o test \
             -lgtest -lgtest_main -pthread \
             -fprofile-arcs -ftest-coverage -O0 -g
 
     - name: Run tests
-      run: ./tests
+      run: ./test
 
     - name: Generate coverage report
       run: |
