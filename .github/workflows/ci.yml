@@ -2,9 +2,9 @@ name: C/C++ CI with Coverage
 
 on:
   push:
-    branches: [ "feature/stud_spec" ]
+    branches: [ "feature/spec_stud" ]
   pull_request:
-    branches: [ "feature/stud_spec" ]
+    branches: [ "feature/spec_stud" ]
 
 jobs:
   build-and-test:
