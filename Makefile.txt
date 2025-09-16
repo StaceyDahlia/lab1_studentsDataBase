@@ -1,28 +1,20 @@
-# Компилятор и флаги
 CXX = g++
-CXXFLAGS = -std=c++20 -O0 -g -fprofile-arcs -ftest-coverage
+CXXFLAGS = -std=c++20 -Wall -Wextra -O0 -g -fprofile-arcs -ftest-coverage
 LDFLAGS = -lgtest -lgtest_main -pthread
 
 SRC = main.cpp
-BIN = app
-TEST_BIN = test
-COVERAGE_XML = coverage.cobertura.xml
+OUT = program.out
+OUT_COV = program_coverage.out
 
-# Собирает основное приложение (без тестов)
-all: $(BIN)
+all: $(OUT)
 
-$(BIN): $(SRC)
-	$(CXX) $(CXXFLAGS) $(SRC) -o $(BIN)
+coverage: $(OUT_COV)
 
-# Компиляция и запуск тестов с флагом RUN_TESTS
-test:
-	$(CXX) $(CXXFLAGS) -DRUN_TESTS $(SRC) -o $(TEST_BIN) $(LDFLAGS)
-	./$(TEST_BIN)
+$(OUT): $(SRC)
+	$(CXX) $(CXXFLAGS) $(SRC) -o $@ $(LDFLAGS)
 
-# Генерация отчёта покрытия (исключаем main)
-coverage: test
-	gcovr --root . --xml-pretty -o $(COVERAGE_XML) --exclude='main.cpp'
+$(OUT_COV): $(SRC)
+	$(CXX) $(CXXFLAGS) --coverage $(SRC) -o $@ $(LDFLAGS)
 
-# Удаление бинарников и файлов покрытия
 clean:
-	rm -f $(BIN) $(TEST_BIN) *.gcno *.gcda $(COVERAGE_XML)
+	rm -f $(OUT) $(OUT_COV) *.gcno *.gcda *.gcov coverage.json coverage.cobertura.xml
