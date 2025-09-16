@@ -74,7 +74,12 @@ jobs:
           EOF
           )
 
-          
+          # Обновляем gist
+          curl -X PATCH \
+            -H "Authorization: token $GIST_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"files\":{\"coverage.json\":{\"content\":\"$JSON_CONTENT\"}}}" \
+            "https://api.github.com/gists/$GIST_ID"
 
           # echo "Coverage badge updated!"
 
