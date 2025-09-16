@@ -1,16 +1,17 @@
-name: C/C++ CI with Coverage Badge
+name: C/C++ CI with Coverage
 
 on:
   push:
-    branches: [ "feature/spec_stud" ]
+    branches: [ "feature/stud_spec" ]
   pull_request:
-    branches: [ "feature/spec_stud" ]
+    branches: [ "feature/stud_spec" ]
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install dependencies
@@ -18,42 +19,72 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake libgtest-dev gcovr
 
-      - name: Build and run tests with coverage
-        run: |
-          make coverage
+          # Build GoogleTest
+          cd /usr/src/gtest
+          sudo cmake .
+          sudo make
+          sudo cp lib/*.a /usr/lib/
 
-      - name: Show coverage summary
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: coverage.cobertura.xml
-          badge: true
-          format: markdown
-          output: both
+      - name: Build with coverage
+        run: make coverage
 
-      - name: Get coverage %
-        id: coverage
-        run: |
-          COVERAGE=$(grep -o 'line-rate="[0-9.]*"' coverage.cobertura.xml | head -1 | grep -o '[0-9.]*')
-          COVERAGE_INT=$(awk "BEGIN {printf(\"%.0f\", $COVERAGE * 100)}")
-          echo "coverage=$COVERAGE_INT" >> $GITHUB_OUTPUT
-          echo "COVERAGE=$COVERAGE_INT%" >> $GITHUB_ENV
+      - name: Run tests
+        run: ./program_coverage.out
 
-      - name: Determine badge color
-        id: badge_color
+      - name: Generate gcov report
         run: |
-          COV=${{ steps.coverage.outputs.coverage }}
-          if [ "$COV" -ge 90 ]; then COLOR=green;
-          elif [ "$COV" -ge 75 ]; then COLOR=yellow;
-          else COLOR=red;
+          gcov main.cpp || true
+
+      - name: Extract coverage and update badge
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: |
+          # Извлекаем покрытие
+          COVERAGE=$(gcov main.cpp | grep -o '[0-9]\+\.[0-9]\+%' | head -1 | sed 's/%//')
+          if [ -z "$COVERAGE" ]; then
+            COVERAGE="0.0"
           fi
-          echo "color=$COLOR" >> $GITHUB_OUTPUT
+          echo "Coverage: $COVERAGE%"
 
-      - name: Update coverage badge
-        uses: schneegans/dynamic-badges-action@v1.0.0
-        with:
-          auth: ${{ secrets.GIST_TOKEN }}
-          gistID: ${{ secrets.GIST_ID }}
-          filename: coverage.json
-          label: coverage
-          message: "${{ env.COVERAGE }}"
-          color: ${{ steps.badge_color.outputs.color }}
+          # Цвет бейджа
+          if (( $(echo "$COVERAGE >= 90" | bc -l) )); then
+            COLOR="brightgreen"
+          elif (( $(echo "$COVERAGE >= 80" | bc -l) )); then
+            COLOR="green"
+          elif (( $(echo "$COVERAGE >= 70" | bc -l) )); then
+            COLOR="yellowgreen"
+          elif (( $(echo "$COVERAGE >= 60" | bc -l) )); then
+            COLOR="yellow"
+          elif (( $(echo "$COVERAGE >= 40" | bc -l) )); then
+            COLOR="orange"
+          else
+            COLOR="red"
+          fi
+
+          echo "Badge color: $COLOR"
+
+          JSON_CONTENT=$(cat <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "${COVERAGE}%",
+            "color": "$COLOR"
+          }
+          EOF
+          )
+
+          # Обновляем gist
+          curl -X PATCH \
+            -H "Authorization: token $GIST_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"files\":{\"coverage.json\":{\"content\":\"$JSON_CONTENT\"}}}" \
+            "https://api.github.com/gists/$GIST_ID"
+
+          # echo "Coverage badge updated!"
+
+      - name: Regular build (without coverage)
+        run: make all
+
+      - name: Run tests (normal build)
+        run: ./program.out
