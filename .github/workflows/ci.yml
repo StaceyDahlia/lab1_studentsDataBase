@@ -76,14 +76,14 @@ jobs:
 
         # Создаем JSON для бейджика
         JSON_CONTENT=$(cat <<EOF
-{
-  "schemaVersion": 1,
-  "label": "coverage",
-  "message": "${COVERAGE_VALUE}%",
-  "color": "$COLOR"
-}
-EOF
-)
+        {
+          "schemaVersion": 1,
+          "label": "coverage",
+          "message": "${COVERAGE}%",
+          "color": "$COLOR"
+        }
+        EOF
+        )
 
         # Обновляем гист через GitHub API
         curl -X PATCH \
