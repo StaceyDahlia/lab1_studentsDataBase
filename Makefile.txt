@@ -1,31 +1,28 @@
 # Компилятор и флаги
 CXX = g++
-CXXFLAGS = -std=c++20
+CXXFLAGS = -std=c++20 -O0 -g -fprofile-arcs -ftest-coverage
+LDFLAGS = -lgtest -lgtest_main -pthread
 
-# Целевые файлы
-MAIN_SRC = main.cpp
-MAIN_BIN = app
-TEST_BIN = tests
+SRC = main.cpp
+BIN = app
+TEST_BIN = test
+COVERAGE_XML = coverage.cobertura.xml
 
-# Флаги для GoogleTest
-GTEST_FLAGS = -lgtest -lgtest_main -pthread
+# Собирает основное приложение (без тестов)
+all: $(BIN)
 
-# Цель по умолчанию
-all: $(MAIN_BIN)
+$(BIN): $(SRC)
+	$(CXX) $(CXXFLAGS) $(SRC) -o $(BIN)
 
-# Компиляция основного приложения
-$(MAIN_BIN): $(MAIN_SRC)
-	$(CXX) $(CXXFLAGS) $(MAIN_SRC) -o $(MAIN_BIN)
-
-# Компиляция и запуск тестов
-test: $(MAIN_SRC)
-	$(CXX) $(CXXFLAGS) $(MAIN_SRC) -DRUN_TESTS -o $(TEST_BIN) $(GTEST_FLAGS)
+# Компиляция и запуск тестов с флагом RUN_TESTS
+test:
+	$(CXX) $(CXXFLAGS) -DRUN_TESTS $(SRC) -o $(TEST_BIN) $(LDFLAGS)
 	./$(TEST_BIN)
 
-# Запуск основной программы
-run: $(MAIN_BIN)
-	./$(MAIN_BIN)
+# Генерация отчёта покрытия (исключаем main)
+coverage: test
+	gcovr --root . --xml-pretty -o $(COVERAGE_XML) --exclude='main.cpp'
 
-# Очистка
+# Удаление бинарников и файлов покрытия
 clean:
-	rm -f $(MAIN_BIN) $(TEST_BIN)
+	rm -f $(BIN) $(TEST_BIN) *.gcno *.gcda $(COVERAGE_XML)
