@@ -26,14 +26,11 @@ jobs:
         sudo cp lib/*.a /usr/lib/
         cd $GITHUB_WORKSPACE
 
-    - name: Compile with coverage flags
+    - name: Build and run tests with coverage
       run: |
-        g++ -std=c++20 main.cpp -DRUN_TESTS -o test \
-            -lgtest -lgtest_main -pthread \
-            -fprofile-arcs -ftest-coverage -O0 -g
-
-    - name: Run tests
-      run: ./test
+        # Сборка и запуск тестов с coverage флагами
+        g++ -std=c++20 -DRUN_TESTS -fprofile-arcs -ftest-coverage -O0 -g main.cpp -lgtest -lgtest_main -pthread -o test
+        ./test
 
     - name: Generate coverage report (gcovr)
       run: gcovr --root . --xml-pretty -o coverage.cobertura.xml
@@ -74,18 +71,16 @@ jobs:
 
         echo "Badge color: $COLOR"
 
-        # Создаем JSON для бейджика
         JSON_CONTENT=$(cat <<EOF
         {
-          "schemaVersion": 1,
-          "label": "coverage",
-          "message": "${COVERAGE}%",
-          "color": "$COLOR"
+            "schemaVersion": 1,
+            "label": "coverage",
+            "message": "${COVERAGE_VALUE}%",
+            "color": "$COLOR"
         }
         EOF
         )
 
-        # Обновляем гист через GitHub API
         curl -X PATCH \
           -H "Authorization: token $GIST_TOKEN" \
           -H "Accept: application/vnd.github.v3+json" \
@@ -94,8 +89,8 @@ jobs:
 
         echo "Coverage badge updated successfully!"
 
-    - name: Regular compile (without coverage)
+    - name: Build main app
       run: make all
 
-    - name: Execute tests
-      run: ./program.out --test
+    - name: Run main app
+      run: ./app
