@@ -236,7 +236,7 @@ TEST(StudentIOTest, DisplayStudBySpecExisting) {
 
     std::string out = output.str();
     EXPECT_NE(out.find("Ivan"), std::string::npos);
-    EXPECT_NE(out.find("Petr"), std::string::npos);
+    EXPECT_NE(out.find("Petra"), std::string::npos);
     EXPECT_NE(out.find("Найдено студентов: 2"), std::string::npos);
 }
 
